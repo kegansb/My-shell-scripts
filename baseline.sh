@@ -1,5 +1,5 @@
  #!/bin/bash
- #Baseline script for running anytime system changes are  made
+ #Baseline script for running anytime system changes are made on my CentOS Server
  DATE=`date +%d-%h-%y:%H%M`
  FILENAME=/tmp/ksb1342-baseline_$DATE
  echo "============> Creating $FILENAME ===> cat for updated system baseline.     "
