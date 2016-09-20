@@ -1,0 +1,9 @@
+(332/332) checking keys in keyring                                          [###########################################] 100%
+(332/332) checking package integrity                                        [###########################################] 100%
+error: linux-api-headers: signature from "Arch Linux ARM Build System <builder@archlinuxarm.org>" is unknown trust
+:: File /var/cache/pacman/pkg/linux-api-headers-4.7-1-armv7h.pkg.tar.xz is corrupted (invalid or corrupted package (PGP signature)).
+Do you want to delete it? [Y/n] 
+error: tzdata: signature from "Arch Linux ARM Build System <builder@archlinuxarm.org>" is unknown trust
+:: File /var/cache/pacman/pkg/tzdata-2016f-1-any.pkg.tar.xz is corrupted (invalid or corrupted package (PGP signature)).
+Do you want to delete it? [Y/n] 
+
