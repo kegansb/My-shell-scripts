@@ -1,7 +1,6 @@
 from docx import Document
 from docx.shared import Pt, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.oxml.ns import qn
 
 def create_remediation_doc(output_filename, incident_data):
     # Create a new Document
@@ -52,7 +51,7 @@ def create_remediation_doc(output_filename, incident_data):
     for subsection_title, items in subsections:
         doc.add_heading(subsection_title, level=3)
         for item in items:
-            p = doc.add_paragraph(f"[ ] {item}", style='List Bullet')
+            doc.add_paragraph(f"[ ] {item}", style='List Bullet')
     
     doc.add_paragraph('Notes:', style='Normal').bold = True
     doc.add_paragraph(incident_data['remediation']['notes'])
@@ -86,71 +85,126 @@ def create_remediation_doc(output_filename, incident_data):
     doc.save(output_filename)
     print(f"Document saved as {output_filename}")
 
-# Example incident data (customize this for each incident)
-incident_data = {
-    'doc_id': '[INC-YYYY-MM-DD-001]',
-    'date_created': '[Insert Date]',
-    'prepared_by': '[Your Name/Team Name]',
-    'incident_date': '[Date of Intrusion]',
-    'last_updated': '[Date of Last Update]',
-    'overview': {
-        'Incident Type': '[e.g., Malware, Phishing]',
-        'Date/Time Detected': '[Insert Date/Time]',
-        'Affected Systems/Assets': '[e.g., Servers, Endpoints]',
-        'Impact Summary': '[e.g., Data Breach, Service Disruption]',
-        'Initial Detection Method': '[e.g., IDS Alert, User Report]'
-    },
-    'specifics': {
-        'Attack Vector': '[e.g., Exploited Vulnerability, Stolen Credentials]',
-        'Indicators of Compromise (IoCs)': '[e.g., Malicious IPs, Hashes]',
-        'Scope of Compromise': '[e.g., Number of Affected Devices]',
-        'Root Cause (if known)': '[e.g., Unpatched Software]',
-        'Threat Actor (if identified)': '[e.g., Known Group, Unknown]',
-        'Evidence Collected': '[e.g., Logs, Memory Dumps]'
-    },
-    'remediation': {
-        'containment': [
-            'Short-Term Containment: [e.g., Isolate affected systems]',
-            'Long-Term Containment: [e.g., Deploy network segmentation]'
+def get_user_input():
+    print("Enter incident details (press Enter to use defaults where prompted):")
+    
+    # Metadata
+    doc_id = input("Document ID (e.g., INC-2025-04-14-001): ") or "INC-YYYY-MM-DD-001"
+    date_created = input("Date Created (e.g., 2025-04-14): ") or "[Insert Date]"
+    prepared_by = input("Prepared By (e.g., John Doe/Team Name): ") or "[Your Name/Team Name]"
+    incident_date = input("Incident Date (e.g., 2025-04-13): ") or "[Date of Intrusion]"
+    last_updated = input("Last Updated (e.g., 2025-04-14): ") or "[Date of Last Update]"
+
+    # Incident Overview
+    incident_type = input("Incident Type (e.g., Malware, Phishing): ") or "[e.g., Malware, Phishing]"
+    date_time_detected = input("Date/Time Detected (e.g., 2025-04-13 14:30): ") or "[Insert Date/Time]"
+    affected_systems = input("Affected Systems/Assets (e.g., Servers, Endpoints): ") or "[e.g., Servers, Endpoints]"
+    impact_summary = input("Impact Summary (e.g., Data Breach, Service Disruption): ") or "[e.g., Data Breach, Service Disruption]"
+
+    # Intrusion Specifics
+    attack_vector = input("Attack Vector (e.g., Exploited Vulnerability, Stolen Credentials): ") or "[e.g., Exploited Vulnerability, Stolen Credentials]"
+    iocs = input("Indicators of Compromise (e.g., Malicious IPs, Hashes): ") or "[e.g., Malicious IPs, Hashes]"
+    scope = input("Scope of Compromise (e.g., 10 Devices, 2 Databases): ") or "[e.g., Number of Affected Devices]"
+    root_cause = input("Root Cause (if known, e.g., Unpatched Software): ") or "[e.g., Unpatched Software]"
+
+    # Remediation Actions (allow multiple entries)
+    print("Enter Containment Actions (one per line, type 'done' when finished):")
+    containment = []
+    while True:
+        action = input("> ")
+        if action.lower() == 'done':
+            break
+        if action:
+            containment.append(action)
+    if not containment:
+        containment = ["Short-Term Containment: [e.g., Isolate affected systems]", "Long-Term Containment: [e.g., Deploy network segmentation]"]
+
+    print("Enter Eradication Actions (one per line, type 'done' when finished):")
+    eradication = []
+    while True:
+        action = input("> ")
+        if action.lower() == 'done':
+            break
+        if action:
+            eradication.append(action)
+    if not eradication:
+        eradication = ["Remove Malicious Artifacts: [e.g., Delete malware]", "Patch Vulnerabilities: [e.g., Apply software updates]"]
+
+    print("Enter Recovery Actions (one per line, type 'done' when finished):")
+    recovery = []
+    while True:
+        action = input("> ")
+        if action.lower() == 'done':
+            break
+        if action:
+            recovery.append(action)
+    if not recovery:
+        recovery = ["Restore Systems/Services: [e.g., Rebuild servers]", "Validate Integrity: [e.g., Verify no residual threats]"]
+
+    print("Enter Preventive Measures (one per line, type 'done' when finished):")
+    preventive = []
+    while True:
+        action = input("> ")
+        if action.lower() == 'done':
+            break
+        if action:
+            preventive.append(action)
+    if not preventive:
+        preventive = ["Based on Intrusion Specifics: [e.g., If phishing, enhance email filters]", "General Hardening: [e.g., Update firewall rules]"]
+
+    # Construct incident_data dictionary
+    incident_data = {
+        'doc_id': doc_id,
+        'date_created': date_created,
+        'prepared_by': prepared_by,
+        'incident_date': incident_date,
+        'last_updated': last_updated,
+        'overview': {
+            'Incident Type': incident_type,
+            'Date/Time Detected': date_time_detected,
+            'Affected Systems/Assets': affected_systems,
+            'Impact Summary': impact_summary,
+            'Initial Detection Method': '[e.g., IDS Alert, User Report]'  # Default for simplicity
+        },
+        'specifics': {
+            'Attack Vector': attack_vector,
+            'Indicators of Compromise (IoCs)': iocs,
+            'Scope of Compromise': scope,
+            'Root Cause (if known)': root_cause,
+            'Threat Actor (if identified)': '[e.g., Known Group, Unknown]',  # Default
+            'Evidence Collected': '[e.g., Logs, Memory Dumps]'  # Default
+        },
+        'remediation': {
+            'containment': containment,
+            'eradication': eradication,
+            'recovery': recovery,
+            'preventive': preventive,
+            'notes': ('Tailor this section to the intrusion’s root cause and attack vector. '
+                      'For example, a ransomware incident may prioritize backup restoration, '
+                      'while a credential theft incident may focus on MFA enforcement.')
+        },
+        'post_incident': {
+            'Incident Review Date': '[Schedule Date]',  # Default
+            'Lessons Learned': '[e.g., Identified gaps in monitoring]',  # Default
+            'Policy Updates': '[e.g., Revise incident response plan]',  # Default
+            'Reporting Requirements': '[e.g., Notify regulators]',  # Default
+            'Documentation Status': '[e.g., Final report archived]'  # Default
+        },
+        'stakeholders': [
+            ('Incident Lead', '[Name, Role, Contact]'),  # Default
+            ('IT/Security Team', '[Name(s), Role(s)]'),  # Default
+            ('External Partners', '[e.g., Forensics Firm, Law Enforcement]'),  # Default
+            ('Approver', '[Name, Role]')  # Default
         ],
-        'eradication': [
-            'Remove Malicious Artifacts: [e.g., Delete malware]',
-            'Patch Vulnerabilities: [e.g., Apply software updates]',
-            'Credential Reset: [e.g., Reset compromised accounts]'
-        ],
-        'recovery': [
-            'Restore Systems/Services: [e.g., Rebuild servers]',
-            'Validate Integrity: [e.g., Verify no residual threats]',
-            'User Communication: [e.g., Notify affected users]'
-        ],
-        'preventive': [
-            'Based on Intrusion Specifics: [e.g., If phishing, enhance email filters]',
-            'General Hardening: [e.g., Update firewall rules]',
-            'Monitoring Enhancements: [e.g., Add new IoCs to SIEM]'
-        ],
-        'notes': ('Tailor this section to the intrusion’s root cause and attack vector. '
-                  'For example, a ransomware incident may prioritize backup restoration, '
-                  'while a credential theft incident may focus on MFA enforcement.')
-    },
-    'post_incident': {
-        'Incident Review Date': '[Schedule Date]',
-        'Lessons Learned': '[e.g., Identified gaps in monitoring]',
-        'Policy Updates': '[e.g., Revise incident response plan]',
-        'Reporting Requirements': '[e.g., Notify regulators]',
-        'Documentation Status': '[e.g., Final report archived]'
-    },
-    'stakeholders': [
-        ('Incident Lead', '[Name, Role, Contact]'),
-        ('IT/Security Team', '[Name(s), Role(s)]'),
-        ('External Partners', '[e.g., Forensics Firm, Law Enforcement]'),
-        ('Approver', '[Name, Role]')
-    ],
-    'appendices': {
-        'Logs/Reports': '[Reference attached evidence or logs]',
-        'Timeline of Events': '[Detailed chronology of incident and response]',
-        'Additional Notes': '[Any other relevant information]'
+        'appendices': {
+            'Logs/Reports': '[Reference attached evidence or logs]',  # Default
+            'Timeline of Events': '[Detailed chronology of incident and response]',  # Default
+            'Additional Notes': '[Any other relevant information]'  # Default
+        }
     }
-}
+    return incident_data
 
 # Run the script
-create_remediation_doc('remediation_template.docx', incident_data)
+if __name__ == "__main__":
+    incident_data = get_user_input()
+    create_remediation_doc('remediation_template.docx', incident_data)
