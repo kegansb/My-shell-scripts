@@ -1,8 +1,10 @@
 from docx import Document
 from docx.shared import Pt, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from datetime import datetime
+import os  # Added for image file checking
 
-def create_remediation_doc(output_filename, incident_data):
+def create_remediation_doc(filename, incident_data):
     # Create a new Document
     doc = Document()
 
@@ -10,6 +12,18 @@ def create_remediation_doc(output_filename, incident_data):
     style = doc.styles['Normal']
     style.font.name = 'Arial'
     style.font.size = Pt(11)
+
+    # Add image to header
+    section = doc.sections[0]
+    header = section.header
+    header_paragraph = header.paragraphs[0]
+    image_path = "logo.png"  # Adjust this path as needed
+    if os.path.exists(image_path):
+        run = header_paragraph.add_run()
+        run.add_picture(image_path, width=Inches(1.0))  # 1-inch width
+        header_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    else:
+        print(f"Warning: Image file '{image_path}' not found. Header will be empty.")
 
     # Title
     title = doc.add_heading('Cyber Intrusion Remediation Document', level=1)
@@ -82,18 +96,24 @@ def create_remediation_doc(output_filename, incident_data):
         doc.add_paragraph(f"{key}: {value}", style='List Bullet')
 
     # Save the document
-    doc.save(output_filename)
-    print(f"Document saved as {output_filename}")
+    doc.save(filename)
+    print(f"Document saved as {filename}")
 
 def get_user_input():
     print("Enter incident details (press Enter to use defaults where prompted):")
     
+    # Get current date as default
+    current_date = datetime.now().strftime("%Y-%m-%d")
+
     # Metadata
     doc_id = input("Document ID (e.g., INC-2025-04-14-001): ") or "INC-YYYY-MM-DD-001"
-    date_created = input("Date Created (e.g., 2025-04-14): ") or "[Insert Date]"
+    # Sanitize doc_id for filename
+    filename = f"{doc_id.replace(':', '_').replace('/', '_')}.docx"
+    
+    date_created = input(f"Date Created (default: {current_date}): ") or current_date
     prepared_by = input("Prepared By (e.g., John Doe/Team Name): ") or "[Your Name/Team Name]"
-    incident_date = input("Incident Date (e.g., 2025-04-13): ") or "[Date of Intrusion]"
-    last_updated = input("Last Updated (e.g., 2025-04-14): ") or "[Date of Last Update]"
+    incident_date = input(f"Incident Date (default: {current_date}): ") or current_date
+    last_updated = input(f"Last Updated (default: {current_date}): ") or current_date
 
     # Incident Overview
     incident_type = input("Incident Type (e.g., Malware, Phishing): ") or "[e.g., Malware, Phishing]"
@@ -164,15 +184,15 @@ def get_user_input():
             'Date/Time Detected': date_time_detected,
             'Affected Systems/Assets': affected_systems,
             'Impact Summary': impact_summary,
-            'Initial Detection Method': '[e.g., IDS Alert, User Report]'  # Default for simplicity
+            'Initial Detection Method': '[e.g., IDS Alert, User Report]'
         },
         'specifics': {
             'Attack Vector': attack_vector,
             'Indicators of Compromise (IoCs)': iocs,
             'Scope of Compromise': scope,
             'Root Cause (if known)': root_cause,
-            'Threat Actor (if identified)': '[e.g., Known Group, Unknown]',  # Default
-            'Evidence Collected': '[e.g., Logs, Memory Dumps]'  # Default
+            'Threat Actor (if identified)': '[e.g., Known Group, Unknown]',
+            'Evidence Collected': '[e.g., Logs, Memory Dumps]'
         },
         'remediation': {
             'containment': containment,
@@ -184,27 +204,27 @@ def get_user_input():
                       'while a credential theft incident may focus on MFA enforcement.')
         },
         'post_incident': {
-            'Incident Review Date': '[Schedule Date]',  # Default
-            'Lessons Learned': '[e.g., Identified gaps in monitoring]',  # Default
-            'Policy Updates': '[e.g., Revise incident response plan]',  # Default
-            'Reporting Requirements': '[e.g., Notify regulators]',  # Default
-            'Documentation Status': '[e.g., Final report archived]'  # Default
+            'Incident Review Date': '[Schedule Date]',
+            'Lessons Learned': '[e.g., Identified gaps in monitoring]',
+            'Policy Updates': '[e.g., Revise incident response plan]',
+            'Reporting Requirements': '[e.g., Notify regulators]',
+            'Documentation Status': '[e.g., Final report archived]'
         },
         'stakeholders': [
-            ('Incident Lead', '[Name, Role, Contact]'),  # Default
-            ('IT/Security Team', '[Name(s), Role(s)]'),  # Default
-            ('External Partners', '[e.g., Forensics Firm, Law Enforcement]'),  # Default
-            ('Approver', '[Name, Role]')  # Default
+            ('Incident Lead', '[Name, Role, Contact]'),
+            ('IT/Security Team', '[Name(s), Role(s)]'),
+            ('External Partners', '[e.g., Forensics Firm, Law Enforcement]'),
+            ('Approver', '[Name, Role]')
         ],
         'appendices': {
-            'Logs/Reports': '[Reference attached evidence or logs]',  # Default
-            'Timeline of Events': '[Detailed chronology of incident and response]',  # Default
-            'Additional Notes': '[Any other relevant information]'  # Default
+            'Logs/Reports': '[Reference attached evidence or logs]',
+            'Timeline of Events': '[Detailed chronology of incident and response]',
+            'Additional Notes': '[Any other relevant information]'
         }
     }
-    return incident_data
+    return incident_data, filename
 
 # Run the script
 if __name__ == "__main__":
-    incident_data = get_user_input()
-    create_remediation_doc('remediation_template.docx', incident_data)
+    incident_data, filename = get_user_input()
+    create_remediation_doc(filename, incident_data)
